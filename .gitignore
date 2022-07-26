@@ -3,6 +3,9 @@ dist/
 build/
 node_modules/
 
+# Environment
+.env
+
 # Logs
 logs
 *.log
