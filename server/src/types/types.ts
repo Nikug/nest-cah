@@ -16,3 +16,5 @@ export type GameState =
   | 'showingCards'
   | 'roundEnd'
   | 'gameEnd';
+
+export type PlayerRole = 'cardCzar' | 'host';
