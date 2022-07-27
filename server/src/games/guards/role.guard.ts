@@ -1,18 +1,13 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GamesService } from 'src/services/games.service';
-import { PlayerRole } from 'src/types/types';
+import { GamesRepository } from 'src/games/repositories/games.repository';
+import { PlayerRole } from '../interfaces/games.interfaces';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    @Inject('GamesService') private gamesService: GamesService,
+    private gamesService: GamesRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Game, GameDocument } from 'src/schemas/game.schema';
+import { Game, GameDocument } from 'src/games/schemas/game.schema';
 
 @Injectable()
-export class GamesService {
+export class GamesRepository {
   constructor(@InjectModel(Game.name) private gameModel: Model<GameDocument>) {}
 
-  async create(): Promise<Game> {
-    const newGame = new this.gameModel();
+  async create(game: Game): Promise<Game> {
+    const newGame = new this.gameModel(game);
     return newGame.save();
   }
 

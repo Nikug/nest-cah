@@ -1,4 +1,4 @@
 import { SetMetadata } from '@nestjs/common';
-import { PlayerRole } from 'src/types/types';
+import { PlayerRole } from '../interfaces/games.interfaces';
 
 export const Role = (role: PlayerRole) => SetMetadata('role', role);

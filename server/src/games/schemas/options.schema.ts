@@ -24,12 +24,12 @@ export class Options {
   allowPopularVote: boolean;
 
   @Prop()
-  password: string;
+  password?: string;
 
   @Prop({ required: true, type: WinConditionsSchema })
   winConditions: WinConditions;
 
-  @Prop({ required: true, type: CardPackSchema })
+  @Prop({ required: true, type: [CardPackSchema] })
   cardPacks: CardPack[];
 
   @Prop({ required: true, type: TimersSchema })

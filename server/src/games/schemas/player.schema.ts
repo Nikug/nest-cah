@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { PlayerState } from 'src/types/types';
+import { PlayerState } from '../interfaces/games.interfaces';
 import { Avatar, AvatarSchema } from './avatar.schema';
 import { WhiteCard, WhiteCardSchema } from './whiteCard.schema';
 
@@ -26,7 +26,7 @@ export class Player {
   @Prop({ required: true, type: AvatarSchema })
   avatar: Avatar;
 
-  @Prop({ required: true, type: WhiteCardSchema })
+  @Prop({ required: true, type: [WhiteCardSchema] })
   whiteCards: WhiteCard[];
 
   @Prop()

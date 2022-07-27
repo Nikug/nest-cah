@@ -19,7 +19,7 @@ export class Round {
   @Prop({ required: true })
   cardCzarId: string;
 
-  @Prop({ required: true, type: PlayedCardsSchema })
+  @Prop({ required: true, type: [PlayedCardsSchema] })
   playedCards: PlayedCards[];
 }
 

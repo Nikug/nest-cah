@@ -1,3 +1,8 @@
+export interface RouteParams {
+  gameId: string;
+  playerId: string;
+}
+
 export type PlayerState =
   | 'ready'
   | 'playing'

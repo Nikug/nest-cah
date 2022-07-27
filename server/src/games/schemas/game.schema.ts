@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { GameState } from 'src/types/types';
+import { GameState } from '../interfaces/games.interfaces';
 import { CardDeck, CardDeckSchema } from './cardDeck.schema';
 import { Options, OptionsSchema } from './options.schema';
 import { Player, PlayerSchema } from './player.schema';
@@ -11,10 +11,13 @@ export type GameDocument = Document & Game;
 
 @Schema()
 export class Game {
+  @Prop({ required: true, unique: true })
+  name: string;
+
   @Prop({ required: true })
   state: GameState;
 
-  @Prop({ required: true, type: PlayerSchema })
+  @Prop({ required: true, type: [PlayerSchema] })
   players: Player[];
 
   @Prop({ required: true, type: CardDeckSchema })
@@ -23,10 +26,10 @@ export class Game {
   @Prop({ required: true, type: OptionsSchema })
   options: Options;
 
-  @Prop({ required: true, type: StreakSchema })
-  streak: Streak;
+  @Prop({ type: StreakSchema })
+  streak?: Streak;
 
-  @Prop({ required: true, type: RoundSchema })
+  @Prop({ required: true, type: [RoundSchema] })
   rounds: Round[];
 }
 
