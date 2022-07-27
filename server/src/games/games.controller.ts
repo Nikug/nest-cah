@@ -10,9 +10,9 @@ export class GamesController {
   constructor(private gamesService: GamesService) {}
 
   @Post()
-  createGame(): string {
-    const result = this.gamesService.createGame();
-    return `created the game ${result}`;
+  async createGame(): Promise<string> {
+    const result = await this.gamesService.createGame();
+    return `created the game ${result.name}`;
   }
 
   @Post(':gameId')

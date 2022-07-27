@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import humanId from 'human-id';
 import { Game } from 'src/games/schemas/game.schema';
 import { GameOptionsConfig as conf } from '../consts/games.consts';
 
@@ -6,7 +7,7 @@ import { GameOptionsConfig as conf } from '../consts/games.consts';
 export class GamesFactory {
   createGame(): Game {
     return {
-      name: 'new game',
+      name: this.generateName(),
       state: 'lobby',
       players: [],
       cards: {
@@ -47,5 +48,9 @@ export class GamesFactory {
       },
       rounds: [],
     };
+  }
+
+  generateName(): string {
+    return humanId({ separator: '-', capitalize: false });
   }
 }

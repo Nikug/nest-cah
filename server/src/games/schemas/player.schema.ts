@@ -8,7 +8,7 @@ export type PlayerDocument = Document & Player;
 
 @Schema()
 export class Player {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   socketId: string;
 
   @Prop({ required: true })
@@ -39,4 +39,14 @@ export class Player {
   isPopularVoteKing: boolean;
 }
 
-export const PlayerSchema = SchemaFactory.createForClass(Player);
+const PlayerSchema = SchemaFactory.createForClass(Player);
+PlayerSchema.index(
+  { socketId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      'socketId.0': { $exists: true },
+    },
+  },
+);
+export { PlayerSchema };
