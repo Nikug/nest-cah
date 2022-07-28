@@ -13,6 +13,7 @@ export class GamesFactory {
       state: 'lobby',
       players: [],
       cards: {
+        cardPacks: [],
         whiteCards: [],
         blackCards: [],
         sentBlackCards: [],
@@ -34,7 +35,6 @@ export class GamesFactory {
           roundLimit: conf.roundLimit.default,
           useRoundLimit: conf.useRoundLimit.default,
         },
-        cardPacks: [],
         timers: {
           blackCardSelect: conf.timers.blackCardSelect.default,
           useBlackCardSelect: conf.timers.useBlackCardSelect.default,
