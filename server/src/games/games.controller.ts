@@ -11,17 +11,20 @@ export class GamesController {
 
   @Post()
   async createGame(): Promise<string> {
-    const result = await this.gamesService.createGame();
-    return `created the game ${result.name}`;
+    const game = await this.gamesService.createGame();
+    return `created the game ${game.name}`;
   }
 
-  @Post(':gameId')
-  joinGame(@Param('gameId') gameId: string): string {
-    // do stuff
-    return 'joined the game';
+  @Post('join/:gameName/:playerId?')
+  async joinGame(
+    @Param('gameName') gameName: string,
+    @Param('playerId') playerId?: string,
+  ): Promise<string> {
+    const game = await this.gamesService.joinGame(gameName, playerId);
+    return `joined the game ${game.name} with player id ${game.players[0]?._id}`;
   }
 
-  @Post(':gameId/:playerId')
+  @Post('options/:gameName/:playerId')
   @Role('host')
   updateOptions(@Param() params: RouteParams, @Body() options: any): string {
     // do stuff

@@ -12,7 +12,7 @@ export class Player {
   socketId: string;
 
   @Prop({ required: true })
-  PublicId: string;
+  publicId: string;
 
   @Prop({ required: true })
   name: string;

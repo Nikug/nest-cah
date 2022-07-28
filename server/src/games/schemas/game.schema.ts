@@ -3,11 +3,12 @@ import { Document } from 'mongoose';
 import { GameState } from '../interfaces/games.interfaces';
 import { CardDeck, CardDeckSchema } from './cardDeck.schema';
 import { Options, OptionsSchema } from './options.schema';
-import { Player, PlayerSchema } from './player.schema';
+import { Player, PlayerDocument, PlayerSchema } from './player.schema';
 import { Round, RoundSchema } from './round.schema';
 import { Streak, StreakSchema } from './streak.schema';
 
 export type GameDocument = Document & Game;
+export type GameDocumentFull = Document & Game & { players: PlayerDocument[] };
 
 @Schema()
 export class Game {

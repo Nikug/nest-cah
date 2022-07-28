@@ -1,5 +1,5 @@
 export interface RouteParams {
-  gameId: string;
+  gameName: string;
   playerId: string;
 }
 

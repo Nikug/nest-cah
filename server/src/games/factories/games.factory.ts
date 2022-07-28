@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import humanId from 'human-id';
+import { nanoid } from 'nanoid';
 import { Game } from 'src/games/schemas/game.schema';
 import { GameOptionsConfig as conf } from '../consts/games.consts';
+import { Player } from '../schemas/player.schema';
 
 @Injectable()
 export class GamesFactory {
@@ -52,5 +54,25 @@ export class GamesFactory {
 
   generateName(): string {
     return humanId({ separator: '-', capitalize: false });
+  }
+
+  createPlayer(socketId: string, isHost: boolean): Player {
+    return {
+      socketId,
+      publicId: nanoid(),
+      name: '',
+      state: 'pickingName',
+      score: 0,
+      avatar: {
+        hat: 0,
+        eye: 0,
+        mouth: 0,
+        skin: 0,
+      },
+      whiteCards: [],
+      isCardCzar: false,
+      isHost,
+      isPopularVoteKing: false,
+    };
   }
 }

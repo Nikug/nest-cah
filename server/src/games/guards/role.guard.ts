@@ -15,13 +15,13 @@ export class RoleGuard implements CanActivate {
     if (!role) return true;
 
     const request = context.switchToHttp().getRequest();
-    const gameId: string = request.gameId;
-    const playerId: string = request.playerId;
+    const gameName: string = request.params.gameName;
+    const playerId: string = request.params.playerId;
 
     if (role === 'cardCzar') {
-      return !!(await this.gamesService.isCardCzar(gameId, playerId));
+      return !!(await this.gamesService.isCardCzar(gameName, playerId));
     } else if (role === 'host') {
-      return !!(await this.gamesService.isHost(gameId, playerId));
+      return !!(await this.gamesService.isHost(gameName, playerId));
     }
 
     return true;
