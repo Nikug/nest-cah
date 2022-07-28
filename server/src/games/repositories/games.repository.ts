@@ -64,6 +64,7 @@ export class GamesRepository {
       {
         $push: { players: newPlayer },
       },
+      { returnDocument: 'after' },
     );
   }
 }
