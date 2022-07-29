@@ -1,15 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  applyPatch,
-  compare,
-  JsonPatchError,
-  Operation,
-} from 'fast-json-patch';
+import { applyPatch, compare, Operation } from 'fast-json-patch';
 import { GamesRepository } from 'src/games/repositories/games.repository';
 import { GameNotFoundError } from '../consts/errors.consts';
 import { GamesFactory } from '../factories/games.factory';
-import { GameDocument, GameDocumentFull } from '../schemas/game.schema';
-import { Options, OptionsSchema } from '../schemas/options.schema';
+import { Game, GameDocument, GameDocumentFull } from '../schemas/game.schema';
 
 @Injectable()
 export class GamesService {
@@ -42,11 +36,23 @@ export class GamesService {
     return game;
   }
 
-  async updateGameOptions(gameName: string, patch: Operation[]): Promise<void> {
+  async updateGameOptions(
+    gameName: string,
+    patch: Operation[],
+  ): Promise<Operation[]> {
     const game = await this.gamesRepository.getGame(gameName);
     if (!game) throw new GameNotFoundError(gameName);
 
+    const gameBeforePatch = game.toObject<Game>();
     game.options = applyPatch(game.options, patch).newDocument;
     await game.save();
+
+    const gameAfterPatch = game.toObject<Game>();
+    const actualPatch = compare(
+      gameBeforePatch.options,
+      gameAfterPatch.options,
+    );
+
+    return actualPatch;
   }
 }

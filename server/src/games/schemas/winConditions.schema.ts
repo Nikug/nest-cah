@@ -18,4 +18,11 @@ export class WinConditions {
   useRoundLimit: boolean;
 }
 
-export const WinConditionsSchema = SchemaFactory.createForClass(WinConditions);
+const WinConditionsSchema = SchemaFactory.createForClass(WinConditions);
+WinConditionsSchema.set('toObject', {
+  transform(_, ret) {
+    delete ret._id;
+    return ret;
+  },
+});
+export { WinConditionsSchema };

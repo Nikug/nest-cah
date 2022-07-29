@@ -31,7 +31,10 @@ export class GamesController {
     @Param() params: RouteParams,
     @Body() patch: Operation[],
   ): Promise<Operation[]> {
-    await this.gamesService.updateGameOptions(params.gameName, patch);
-    return patch;
+    const newPatch = await this.gamesService.updateGameOptions(
+      params.gameName,
+      patch,
+    );
+    return newPatch;
   }
 }

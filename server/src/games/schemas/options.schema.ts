@@ -32,4 +32,11 @@ export class Options {
   timers: Timers;
 }
 
-export const OptionsSchema = SchemaFactory.createForClass(Options);
+const OptionsSchema = SchemaFactory.createForClass(Options);
+OptionsSchema.set('toObject', {
+  transform(_, ret) {
+    delete ret._id;
+    return ret;
+  },
+});
+export { OptionsSchema };

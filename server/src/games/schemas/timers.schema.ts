@@ -36,4 +36,11 @@ export class Timers {
   useRoundEnd: boolean;
 }
 
-export const TimersSchema = SchemaFactory.createForClass(Timers);
+const TimersSchema = SchemaFactory.createForClass(Timers);
+TimersSchema.set('toObject', {
+  transform(_, ret) {
+    delete ret._id;
+    return ret;
+  },
+});
+export { TimersSchema };
