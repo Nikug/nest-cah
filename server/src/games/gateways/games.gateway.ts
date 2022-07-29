@@ -1,5 +1,4 @@
 import {
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
@@ -8,6 +7,7 @@ import {
 import { Socket } from 'socket.io';
 
 @WebSocketGateway({
+  path: '/socket',
   cors: {
     origin: '*',
   },
@@ -22,7 +22,8 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('ping')
-  handlePing(@MessageBody() data: string): string {
-    return data;
+  handlePing(client: Socket, data: string) {
+    console.log(`Pinged: ${data}`);
+    client.emit('ping', data);
   }
 }
