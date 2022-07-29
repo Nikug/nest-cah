@@ -19,27 +19,41 @@ describe('Gateway', () => {
 
   afterAll(async () => await app.close());
 
-  it('should allow connecting', (done) => {
-    const message = 'ping!';
-    const address = app.getHttpServer().listen().address();
-    const socketAddress = `http://[${address.address}]:${address.port}`;
+  const getClientSocket = (app: INestApplication) => {
+    const server = app.getHttpServer();
+    if (!server.address()) {
+      server.listen(0);
+    }
 
-    const socket = io();
+    const address = server.address();
+    const socketAddress = `http://[${address.address}]:${address.port}`;
+    const socket = io(socketAddress, {
+      path: '/socket',
+    });
+
+    return socket;
+  };
+
+  it('should be defined', () => {
+    const gateway = app.get(GamesGateway);
+    expect(gateway).toBeDefined();
+  });
+
+  it('should allow connecting, pinging and disconnecting', (done) => {
+    const message = 'ping!';
+    const socket = getClientSocket(app);
 
     socket.on('connect', () => {
-      console.log('Socket connected');
+      socket.emit('ping', message);
     });
 
     socket.on('ping', (data) => {
       expect(data).toBe(message);
+      socket.disconnect();
     });
 
     socket.on('disconnect', () => {
-      console.log('Socket disconnected');
       done();
     });
-
-    socket.emit('ping', message);
-    socket.disconnect();
   });
 });

@@ -13,8 +13,8 @@ import { Socket } from 'socket.io';
   },
 })
 export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  handleConnection(client: Socket, message: any) {
-    console.log(`Client connected: ${client.id} ${message}`);
+  handleConnection(client: Socket) {
+    console.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
