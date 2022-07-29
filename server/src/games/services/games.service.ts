@@ -4,6 +4,7 @@ import { GamesRepository } from 'src/games/repositories/games.repository';
 import { GameNotFoundError } from '../consts/errors.consts';
 import { GamesFactory } from '../factories/games.factory';
 import { Game, GameDocument, GameDocumentFull } from '../schemas/game.schema';
+import { Player } from '../schemas/player.schema';
 
 @Injectable()
 export class GamesService {
@@ -34,6 +35,14 @@ export class GamesService {
     if (!game) throw new GameNotFoundError(gameName);
 
     return game;
+  }
+
+  async setPlayerSocket(
+    gameName: string,
+    playerId: string,
+    socketId: string,
+  ): Promise<void> {
+    await this.gamesRepository.setPlayerSocket(gameName, playerId, socketId);
   }
 
   async updateGameOptions(

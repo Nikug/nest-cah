@@ -78,4 +78,19 @@ export class GamesRepository {
       { returnDocument: 'after' },
     );
   }
+
+  async setPlayerSocket(
+    gameName: string,
+    playerId: string,
+    socketId: string,
+  ): Promise<number> {
+    const result = await this.gameModel
+      .updateOne()
+      .where('name')
+      .equals(gameName)
+      .where('players._id')
+      .equals(playerId)
+      .set('socketId', socketId);
+    return result.modifiedCount;
+  }
 }
