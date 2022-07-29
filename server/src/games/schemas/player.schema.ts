@@ -14,7 +14,7 @@ export class Player {
   @Prop({ required: true })
   publicId: string;
 
-  @Prop({ required: true })
+  @Prop()
   name: string;
 
   @Prop({ required: true })
@@ -40,13 +40,4 @@ export class Player {
 }
 
 const PlayerSchema = SchemaFactory.createForClass(Player);
-PlayerSchema.index(
-  { socketId: 1 },
-  {
-    unique: true,
-    partialFilterExpression: {
-      'socketId.0': { $exists: true },
-    },
-  },
-);
 export { PlayerSchema };

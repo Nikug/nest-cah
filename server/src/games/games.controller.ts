@@ -1,4 +1,5 @@
 import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Operation } from 'fast-json-patch';
 import { Role } from 'src/games/decorators/roles.decorator';
 import { RoleGuard } from 'src/games/guards/role.guard';
 import { RouteParams } from './interfaces/games.interfaces';
@@ -26,8 +27,11 @@ export class GamesController {
 
   @Post('options/:gameName/:playerId')
   @Role('host')
-  updateOptions(@Param() params: RouteParams, @Body() options: any): string {
-    // do stuff
-    return 'updated options';
+  async updateOptions(
+    @Param() params: RouteParams,
+    @Body() patch: Operation[],
+  ): Promise<Operation[]> {
+    await this.gamesService.updateGameOptions(params.gameName, patch);
+    return patch;
   }
 }

@@ -17,27 +17,38 @@ export class GamesRepository {
     return await newGame.save();
   }
 
-  async isCardCzar(
-    gameName: string,
-    playerId: string,
-  ): Promise<boolean | null> {
-    return await this.gameModel
-      .findOne<boolean>()
-      .where('name')
-      .equals(gameName)
-      .where('players._id')
-      .equals(playerId)
-      .select('players.cardCzar');
+  async getGame(gameName: string): Promise<GameDocument | null> {
+    return await this.gameModel.findOne().where('name').equals(gameName);
   }
 
-  async isHost(gameName: string, playerId: string): Promise<boolean | null> {
-    return await this.gameModel
-      .findOne<boolean>()
+  async isCardCzar(gameName: string, playerId: string): Promise<boolean> {
+    const game = await this.gameModel
+      .findOne()
       .where('name')
       .equals(gameName)
       .where('players._id')
       .equals(playerId)
-      .select('players.isHost');
+      .select('players.isCardCzar.$');
+
+    if (game?.players.length === 1) {
+      return game.players[0].isCardCzar;
+    }
+    return false;
+  }
+
+  async isHost(gameName: string, playerId: string): Promise<boolean> {
+    const game = await this.gameModel
+      .findOne()
+      .where('name')
+      .equals(gameName)
+      .where('players._id')
+      .equals(playerId)
+      .select('players.isHost.$');
+
+    if (game?.players.length === 1) {
+      return game.players[0].isHost;
+    }
+    return false;
   }
 
   async gameHasHost(gameName: string): Promise<boolean> {
