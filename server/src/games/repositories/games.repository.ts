@@ -6,7 +6,7 @@ import {
   GameDocument,
   GameDocumentFull,
 } from 'src/games/schemas/game.schema';
-import { Player } from '../schemas/player.schema';
+import { Player, PlayerDocument } from '../schemas/player.schema';
 
 @Injectable()
 export class GamesRepository {
@@ -19,6 +19,21 @@ export class GamesRepository {
 
   async getGame(gameName: string): Promise<GameDocument | null> {
     return await this.gameModel.findOne().where('name').equals(gameName);
+  }
+
+  async getPlayer(
+    gameName: string,
+    playerId: string,
+  ): Promise<PlayerDocument | undefined> {
+    const game = await this.gameModel
+      .findOne<GameDocumentFull>()
+      .where('name')
+      .equals(gameName)
+      .where('players._id')
+      .equals(playerId)
+      .select('players.$');
+    console.log(game);
+    return game?.players?.[0];
   }
 
   async isCardCzar(gameName: string, playerId: string): Promise<boolean> {

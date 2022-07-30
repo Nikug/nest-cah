@@ -1,3 +1,8 @@
+export interface GameNameAndPlayerId {
+  gameName: string;
+  playerId: string;
+}
+
 export interface OptionsDto {
   maximumPlayers: number;
   winnerBecomesCardCzar: boolean;

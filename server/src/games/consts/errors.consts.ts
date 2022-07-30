@@ -14,3 +14,11 @@ export class GameNotFoundError extends DomainError {
     this.data = errorData;
   }
 }
+
+export class PlayerNotFoundError extends DomainError {
+  data: unknown;
+  constructor(id: string, errorData?: unknown) {
+    super(`Player ${id} not found`);
+    this.data = errorData;
+  }
+}

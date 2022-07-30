@@ -9,6 +9,7 @@ import { Socket } from 'socket.io';
 import { SubscribeGameMessage } from '../interfaces/socketMessages.interface';
 import { GamesService } from '../services/games.service';
 import { Server } from 'socket.io';
+import { PlayerNotFoundError } from '../consts/errors.consts';
 
 @WebSocketGateway({
   path: '/socket',
@@ -22,12 +23,22 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private gamesService: GamesService) {}
 
-  updateAllButSender(
+  async updateOtherPlayers(
     gameName: string,
-    socketId: string,
+    playerId: string,
     event: string,
     data: any,
   ) {
+    const socketId = await this.gamesService.getPlayerSocket(
+      gameName,
+      playerId,
+    );
+    if (!socketId) {
+      throw new PlayerNotFoundError(
+        playerId,
+        `SocketId was not found for player ${playerId}`,
+      );
+    }
     const socket = this.server.sockets.sockets.get(socketId);
     socket?.to(gameName).emit(event, data);
   }

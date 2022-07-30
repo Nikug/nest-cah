@@ -2,13 +2,17 @@ import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { Operation } from 'fast-json-patch';
 import { Role } from 'src/games/decorators/roles.decorator';
 import { RoleGuard } from 'src/games/guards/role.guard';
+import { GamesGateway } from './gateways/games.gateway';
 import { RouteParams } from './interfaces/games.interfaces';
 import { GamesService } from './services/games.service';
 
 @Controller('games')
 @UseGuards(RoleGuard)
 export class GamesController {
-  constructor(private gamesService: GamesService) {}
+  constructor(
+    private gamesService: GamesService,
+    private gamesGateway: GamesGateway,
+  ) {}
 
   @Post()
   async createGame(): Promise<string> {
@@ -20,9 +24,9 @@ export class GamesController {
   async joinGame(
     @Param('gameName') gameName: string,
     @Param('playerId') playerId?: string,
-  ): Promise<string> {
-    const game = await this.gamesService.joinGame(gameName, playerId);
-    return `joined the game ${game.name} with player id ${game.players[0]?._id}`;
+  ): Promise<RouteParams> {
+    const result = await this.gamesService.joinGame(gameName, playerId);
+    return result;
   }
 
   @Post('options/:gameName/:playerId')
@@ -35,6 +39,14 @@ export class GamesController {
       params.gameName,
       patch,
     );
+
+    await this.gamesGateway.updateOtherPlayers(
+      params.gameName,
+      params.playerId,
+      'updateOptions',
+      newPatch,
+    );
+
     return newPatch;
   }
 }

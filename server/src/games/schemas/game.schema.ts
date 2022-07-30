@@ -8,7 +8,8 @@ import { Round, RoundSchema } from './round.schema';
 import { Streak, StreakSchema } from './streak.schema';
 
 export type GameDocument = Document & Game;
-export type GameDocumentFull = Document & Game & { players: PlayerDocument[] };
+export type GameDocumentFull = Document &
+  Omit<Game, 'players'> & { players: PlayerDocument[] };
 
 @Schema()
 export class Game {

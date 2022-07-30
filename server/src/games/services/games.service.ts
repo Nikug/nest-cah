@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { applyPatch, compare, Operation } from 'fast-json-patch';
 import { GamesRepository } from 'src/games/repositories/games.repository';
-import { GameNotFoundError } from '../consts/errors.consts';
+import {
+  GameNotFoundError,
+  PlayerNotFoundError,
+} from '../consts/errors.consts';
 import { GamesFactory } from '../factories/games.factory';
-import { Game, GameDocument, GameDocumentFull } from '../schemas/game.schema';
-import { Player } from '../schemas/player.schema';
+import { GameNameAndPlayerId } from '../interfaces/gameDtos.interfaces';
+import { Game, GameDocument } from '../schemas/game.schema';
 
 @Injectable()
 export class GamesService {
@@ -24,7 +27,7 @@ export class GamesService {
   async joinGame(
     gameName: string,
     playerId: string | undefined,
-  ): Promise<GameDocumentFull> {
+  ): Promise<GameNameAndPlayerId> {
     const gameExists = await this.gamesRepository.gameExists(gameName);
     if (!gameExists) throw new GameNotFoundError(gameName);
 
@@ -32,9 +35,11 @@ export class GamesService {
     const player = this.gamesFactory.createPlayer('aaa', !hasHost);
 
     const game = await this.gamesRepository.addPlayer(gameName, player);
-    if (!game) throw new GameNotFoundError(gameName);
 
-    return game;
+    const newPlayerId = game?.players.at(-1)?._id;
+    if (!newPlayerId) throw new PlayerNotFoundError(newPlayerId);
+
+    return { gameName, playerId: newPlayerId };
   }
 
   async setPlayerSocket(
@@ -43,6 +48,14 @@ export class GamesService {
     socketId: string,
   ): Promise<void> {
     await this.gamesRepository.setPlayerSocket(gameName, playerId, socketId);
+  }
+
+  async getPlayerSocket(
+    gameName: string,
+    playerId: string,
+  ): Promise<string | undefined> {
+    const player = await this.gamesRepository.getPlayer(gameName, playerId);
+    return player?.socketId;
   }
 
   async updateGameOptions(
