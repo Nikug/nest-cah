@@ -117,9 +117,9 @@ describe('Gateway', () => {
     });
 
     socket.on(SocketMessages.subscribe, (response) => {
-      socket.disconnect();
       expect(response).toBe('ok');
       expect(repository.setPlayerSocket).toHaveBeenCalledTimes(1);
+      socket.disconnect();
     });
 
     socket.on('disconnect', () => {
