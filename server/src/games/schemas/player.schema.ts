@@ -9,6 +9,9 @@ export type PlayerDocument = Document & Player;
 @Schema()
 export class Player {
   @Prop({ required: true })
+  id: string;
+
+  @Prop({ required: true })
   socketId: string;
 
   @Prop({ required: true })

@@ -10,6 +10,7 @@ import { SubscribeGameMessage } from '../interfaces/socketMessages.interface';
 import { GamesService } from '../services/games.service';
 import { Server } from 'socket.io';
 import { PlayerNotFoundError } from '../consts/errors.consts';
+import { SocketMessages } from '../consts/sockets.consts';
 
 @WebSocketGateway({
   path: '/socket',
@@ -53,14 +54,15 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`Client disconnected: ${client.id}`);
   }
 
-  @SubscribeMessage('ping')
+  @SubscribeMessage(SocketMessages.ping)
   handlePing(client: Socket, data: string) {
     console.log(`Pinged: ${data}`);
-    client.emit('ping', data);
+    client.emit(SocketMessages.ping, data);
   }
 
-  @SubscribeMessage('subscribeGame')
+  @SubscribeMessage(SocketMessages.subscribe)
   async subscribeToGame(client: Socket, data: SubscribeGameMessage) {
+    console.log('yeet');
     client.join(data.gameName);
     await this.gamesService.setPlayerSocket(
       data.gameName,

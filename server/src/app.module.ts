@@ -8,7 +8,11 @@ import { GamesModule } from './games/games.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_CONNECTION_STRING || ''),
+    MongooseModule.forRootAsync({
+      useFactory: () => ({
+        uri: process.env.MONGO_CONNECTION_STRING || '',
+      }),
+    }),
     GamesModule,
   ],
   controllers: [AppController],

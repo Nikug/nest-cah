@@ -7,7 +7,7 @@ import {
 } from '../consts/errors.consts';
 import { GamesFactory } from '../factories/games.factory';
 import { GameNameAndPlayerId } from '../interfaces/gameDtos.interfaces';
-import { Game, GameDocument } from '../schemas/game.schema';
+import { Game } from '../schemas/game.schema';
 
 @Injectable()
 export class GamesService {
@@ -16,7 +16,7 @@ export class GamesService {
     private gamesFactory: GamesFactory,
   ) {}
 
-  async createGame(): Promise<GameDocument> {
+  async createGame(): Promise<Game> {
     const game = this.gamesFactory.createGame();
     const newGame = await this.gamesRepository.create(game);
     if (!newGame) throw new Error('Failed to create the game');
@@ -32,12 +32,12 @@ export class GamesService {
     if (!gameExists) throw new GameNotFoundError(gameName);
 
     const hasHost = await this.gamesRepository.gameHasHost(gameName);
-    const player = this.gamesFactory.createPlayer('aaa', !hasHost);
+    const player = this.gamesFactory.createPlayer('', !hasHost);
 
     const game = await this.gamesRepository.addPlayer(gameName, player);
 
-    const newPlayerId = game?.players.at(-1)?._id;
-    if (!newPlayerId) throw new PlayerNotFoundError(newPlayerId);
+    const newPlayerId = game?.players.at(-1)?.id;
+    if (!newPlayerId) throw new PlayerNotFoundError(newPlayerId ?? '');
 
     return { gameName, playerId: newPlayerId };
   }

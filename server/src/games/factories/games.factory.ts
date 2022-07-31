@@ -59,6 +59,7 @@ export class GamesFactory {
   createPlayer(socketId: string, isHost: boolean): Player {
     return {
       socketId,
+      id: nanoid(),
       publicId: nanoid(),
       name: '',
       state: 'pickingName',
