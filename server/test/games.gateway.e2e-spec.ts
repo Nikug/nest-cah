@@ -101,23 +101,23 @@ describe('Gateway', () => {
   });
 
   it('should allow subscribing to a game', (done) => {
-    const factory = app.get(GamesFactory);
-    const game = factory.createGame();
-    const player = factory.createPlayer('socket', true);
-    game.players = [player];
     const repository = app.get(GamesRepository);
 
     const socket = getClientSocket(app);
     socket.on('connect', () => {
       socket.emit(SocketMessages.subscribe, {
-        gameName: game.name,
-        playerId: player.id,
+        gameName: 'game',
+        playerId: 'id',
       });
     });
 
     socket.on(SocketMessages.subscribe, (response) => {
       expect(response).toBe('ok');
-      expect(repository.setPlayerSocket).toHaveBeenCalledTimes(1);
+      expect(repository.setPlayerSocket).toHaveBeenCalledWith(
+        'game',
+        'id',
+        socket.id,
+      );
       socket.disconnect();
     });
 
