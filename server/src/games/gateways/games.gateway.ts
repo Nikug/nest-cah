@@ -13,7 +13,6 @@ import { PlayerNotFoundError } from '../consts/errors.consts';
 import { SocketMessages } from '../consts/sockets.consts';
 
 @WebSocketGateway({
-  path: '/socket',
   cors: {
     origin: '*',
   },
@@ -62,12 +61,12 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage(SocketMessages.subscribe)
   async subscribeToGame(client: Socket, data: SubscribeGameMessage) {
-    console.log('yeet');
     client.join(data.gameName);
     await this.gamesService.setPlayerSocket(
       data.gameName,
       data.playerId,
       client.id,
     );
+    client.emit(SocketMessages.subscribe, 'ok');
   }
 }

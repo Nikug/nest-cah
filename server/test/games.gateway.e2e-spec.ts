@@ -1,5 +1,5 @@
 import * as request from 'supertest';
-import { DynamicModule, INestApplication, Provider } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Test } from '@nestjs/testing';
 import { io } from 'socket.io-client';
@@ -7,28 +7,15 @@ import { GamesFactory } from 'src/games/factories/games.factory';
 import { GamesRepository } from 'src/database/repositories/games.repository';
 import { GamesGateway } from 'src/games/gateways/games.gateway';
 import { SocketMessages } from 'src/games/consts/sockets.consts';
-import { getModelToken } from '@nestjs/mongoose';
-import { Game } from 'src/database/schemas/game.schema';
 import { GamesController } from 'src/games/games.controller';
 import { GamesService } from 'src/games/services/games.service';
-
-const createMockModule = (providers: Provider[]): DynamicModule => {
-  const exports = providers.map(
-    (provider) => (provider as any).provide || provider,
-  );
-  return {
-    module: class MockModule {},
-    providers,
-    exports,
-    global: true,
-  };
-};
+import { AppModule } from 'src/app.module';
 
 const gamesRepository: Partial<GamesRepository> = {
-  gameExists: async () => true,
-  gameHasHost: async () => false,
-  addPlayer: async () => undefined,
-  setPlayerSocket: async () => 0,
+  gameExists: jest.fn().mockImplementation(async () => true),
+  gameHasHost: jest.fn().mockImplementation(async () => false),
+  addPlayer: jest.fn().mockImplementation(async () => undefined),
+  setPlayerSocket: jest.fn().mockImplementation(async () => 0),
 };
 
 describe('Gateway', () => {
@@ -36,14 +23,12 @@ describe('Gateway', () => {
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
-      imports: [
-        createMockModule([
-          { provide: getModelToken(Game.name), useValue: jest.fn() },
-          { provide: GamesRepository, useValue: gamesRepository },
-        ]),
-      ],
-      providers: [GamesController, GamesGateway, GamesService, GamesFactory],
-    }).compile();
+      controllers: [GamesController],
+      providers: [GamesRepository, GamesGateway, GamesService, GamesFactory],
+    })
+      .overrideProvider(GamesRepository)
+      .useValue(gamesRepository)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useWebSocketAdapter(new IoAdapter(app));
@@ -55,6 +40,8 @@ describe('Gateway', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => jest.restoreAllMocks());
+
   const getClientSocket = (app: INestApplication) => {
     const server = app.getHttpServer();
     if (!server.address()) {
@@ -63,9 +50,7 @@ describe('Gateway', () => {
 
     const address = server.address();
     const socketAddress = `http://[${address.address}]:${address.port}`;
-    const socket = io(socketAddress, {
-      path: '/socket',
-    });
+    const socket = io(socketAddress);
 
     return socket;
   };
@@ -93,7 +78,7 @@ describe('Gateway', () => {
     });
   });
 
-  it('should allow joining a game', () => {
+  it('should allow joining a game', async () => {
     // Game is created
     const factory = app.get(GamesFactory);
     const game = factory.createGame();
@@ -103,29 +88,42 @@ describe('Gateway', () => {
       .spyOn(gamesRepository, 'addPlayer')
       .mockImplementation(async () => ({ ...game, players: [player] }));
 
-    expect(app.get(GamesController)).toBeDefined();
-
     // Call join game without player id
     // Should return gameId and player id
-    return request(app.getHttpServer())
-      .post(`/join/${game.name}`)
-      .expect(200)
+    await request(app.getHttpServer())
+      .post(`/games/join/${game.name}`)
+      .expect(201)
       .expect({
-        data: { gameName: game.name, playerId: player.id },
+        gameName: game.name,
+        playerId: player.id,
       });
 
-    // Create socket connection
-    // const socket = getClientSocket(app);
-    // // Subscribe with the socket
-    // socket.emit(SocketMessages.subscribe, {
-    //   gameName: game.name,
-    //   playerId: player.id,
-    // });
+    expect(addPlayerSpy).toHaveBeenCalledTimes(1);
+  });
 
-    // const spy = jest.spyOn(gamesRepository, 'setPlayerSocket');
+  it('should allow subscribing to a game', (done) => {
+    const factory = app.get(GamesFactory);
+    const game = factory.createGame();
+    const player = factory.createPlayer('socket', true);
+    game.players = [player];
+    const repository = app.get(GamesRepository);
 
-    // expect(spy).toHaveBeenCalledTimes(1);
-    // socket.on('disconnect', () => done());
-    // socket.disconnect();
+    const socket = getClientSocket(app);
+    socket.on('connect', () => {
+      socket.emit(SocketMessages.subscribe, {
+        gameName: game.name,
+        playerId: player.id,
+      });
+    });
+
+    socket.on(SocketMessages.subscribe, (response) => {
+      socket.disconnect();
+      expect(response).toBe('ok');
+      expect(repository.setPlayerSocket).toHaveBeenCalledTimes(1);
+    });
+
+    socket.on('disconnect', () => {
+      done();
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Operation } from 'fast-json-patch';
 import { Role } from 'src/games/decorators/roles.decorator';
 import { RoleGuard } from 'src/games/guards/role.guard';
@@ -13,6 +13,10 @@ export class GamesController {
     private gamesService: GamesService,
     private gamesGateway: GamesGateway,
   ) {}
+  @Get('ping')
+  async ping(): Promise<string> {
+    return 'Pong!';
+  }
 
   @Post()
   async createGame(): Promise<string> {
