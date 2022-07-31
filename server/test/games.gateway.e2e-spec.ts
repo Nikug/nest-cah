@@ -5,13 +5,13 @@ import { Test } from '@nestjs/testing';
 import { io } from 'socket.io-client';
 import { GamesFactory } from 'src/games/factories/games.factory';
 import { GamesController } from 'src/games/games.controller';
-import { GamesRepository } from 'src/games/repositories/games.repository';
+import { GamesRepository } from 'src/database/repositories/games.repository';
 import { GamesService } from 'src/games/services/games.service';
 import { GamesGateway } from 'src/games/gateways/games.gateway';
 import { SocketMessages } from 'src/games/consts/sockets.consts';
 import { GamesModule } from 'src/games/games.module';
 import { getModelToken } from '@nestjs/mongoose';
-import { Game } from 'src/games/schemas/game.schema';
+import { Game } from 'src/database/schemas/game.schema';
 
 const gameModel: Game = {
   name: 'game',

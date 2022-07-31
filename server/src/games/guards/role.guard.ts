@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GamesRepository } from 'src/games/repositories/games.repository';
+import { GamesRepository } from 'src/database/repositories/games.repository';
 import { PlayerRole } from '../interfaces/games.interfaces';
 
 @Injectable()

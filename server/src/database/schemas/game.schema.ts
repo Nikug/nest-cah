@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { GameState } from '../interfaces/games.interfaces';
+import { GameState } from '../../games/interfaces/games.interfaces';
 import { CardDeck } from './cardDeck.schema';
 import { Options, OptionsSchema } from './options.schema';
 import { Player, PlayerSchema } from './player.schema';

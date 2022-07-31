@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { applyPatch, compare, Operation } from 'fast-json-patch';
-import { GamesRepository } from 'src/games/repositories/games.repository';
+import { GamesRepository } from 'src/database/repositories/games.repository';
 import {
   GameNotFoundError,
   PlayerNotFoundError,
 } from '../consts/errors.consts';
 import { GamesFactory } from '../factories/games.factory';
 import { GameNameAndPlayerId } from '../interfaces/gameDtos.interfaces';
-import { Game } from '../schemas/game.schema';
+import { Game } from '../../database/schemas/game.schema';
 
 @Injectable()
 export class GamesService {

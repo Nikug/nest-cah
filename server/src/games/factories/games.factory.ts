@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import humanId from 'human-id';
 import { nanoid } from 'nanoid';
-import { Game } from 'src/games/schemas/game.schema';
+import { Game } from 'src/database/schemas/game.schema';
 import { GameOptionsConfig as conf } from '../consts/games.consts';
-import { Player } from '../schemas/player.schema';
+import { Player } from '../../database/schemas/player.schema';
 
 @Injectable()
 export class GamesFactory {

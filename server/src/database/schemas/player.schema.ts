@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { PlayerState } from '../interfaces/games.interfaces';
+import { PlayerState } from '../../games/interfaces/games.interfaces';
 import { Avatar, AvatarSchema } from './avatar.schema';
 import { WhiteCard, WhiteCardSchema } from './whiteCard.schema';
 
