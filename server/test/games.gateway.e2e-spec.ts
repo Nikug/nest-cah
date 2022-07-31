@@ -9,7 +9,6 @@ import { GamesGateway } from 'src/games/gateways/games.gateway';
 import { SocketMessages } from 'src/games/consts/sockets.consts';
 import { GamesController } from 'src/games/games.controller';
 import { GamesService } from 'src/games/services/games.service';
-import { AppModule } from 'src/app.module';
 
 const gamesRepository: Partial<GamesRepository> = {
   gameExists: jest.fn().mockImplementation(async () => true),
