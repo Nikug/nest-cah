@@ -1,90 +1,59 @@
 import * as request from 'supertest';
-import { INestApplication } from '@nestjs/common';
+import { DynamicModule, INestApplication, Provider } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Test } from '@nestjs/testing';
 import { io } from 'socket.io-client';
 import { GamesFactory } from 'src/games/factories/games.factory';
-import { GamesController } from 'src/games/games.controller';
 import { GamesRepository } from 'src/database/repositories/games.repository';
-import { GamesService } from 'src/games/services/games.service';
 import { GamesGateway } from 'src/games/gateways/games.gateway';
 import { SocketMessages } from 'src/games/consts/sockets.consts';
-import { GamesModule } from 'src/games/games.module';
 import { getModelToken } from '@nestjs/mongoose';
 import { Game } from 'src/database/schemas/game.schema';
+import { GamesController } from 'src/games/games.controller';
+import { GamesService } from 'src/games/services/games.service';
 
-const gameModel: Game = {
-  name: 'game',
-  state: 'lobby',
-  players: [],
-  cards: {
-    cardPacks: [],
-    whiteCards: [],
-    blackCards: [],
-    sentBlackCards: [],
-    whiteCardDiscard: [],
-    blackCardDiscard: [],
-    whiteCardDeck: [],
-    blackCardDeck: [],
-  },
-  options: {
-    maximumPlayers: 4,
-    winnerBecomesCardCzar: true,
-    allowKickedPlayerJoin: true,
-    allowCardCzarPopularVote: false,
-    allowPopularVote: true,
-    password: undefined,
-    winConditions: {
-      scoreLimit: 4,
-      useScoreLimit: true,
-      roundLimit: 8,
-      useRoundLimit: false,
-    },
-    timers: {
-      blackCardSelect: 30,
-      useBlackCardSelect: true,
-      whiteCardSelect: 30,
-      useWhiteCardSelect: true,
-      blackCardRead: 30,
-      useBlackCardRead: true,
-      winnerSelect: 30,
-      useWinnerSelect: true,
-      roundEnd: 30,
-      useRoundEnd: true,
-    },
-  },
-  rounds: [],
+const createMockModule = (providers: Provider[]): DynamicModule => {
+  const exports = providers.map(
+    (provider) => (provider as any).provide || provider,
+  );
+  return {
+    module: class MockModule {},
+    providers,
+    exports,
+    global: true,
+  };
+};
+
+const gamesRepository: Partial<GamesRepository> = {
+  gameExists: async () => true,
+  gameHasHost: async () => false,
+  addPlayer: async () => undefined,
+  setPlayerSocket: async () => 0,
 };
 
 describe('Gateway', () => {
   let app: INestApplication;
-  const gamesRepository: Partial<GamesRepository> = {
-    gameExists: async () => true,
-    gameHasHost: async () => false,
-    addPlayer: async () => undefined,
-    setPlayerSocket: async () => 0,
-  };
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
-      providers: [
-        {
-          provide: getModelToken(Game.name),
-          useValue: gameModel,
-        },
+      imports: [
+        createMockModule([
+          { provide: getModelToken(Game.name), useValue: jest.fn() },
+          { provide: GamesRepository, useValue: gamesRepository },
+        ]),
       ],
-      imports: [GamesModule],
-    })
-      .overrideProvider(GamesRepository)
-      .useValue(gamesRepository)
-      .compile();
+      providers: [GamesController, GamesGateway, GamesService, GamesFactory],
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     app.useWebSocketAdapter(new IoAdapter(app));
     await app.init();
   });
 
-  afterAll(async () => await app.close());
+  afterAll(async () => {
+    await app.close();
+    jest.clearAllMocks();
+  });
 
   const getClientSocket = (app: INestApplication) => {
     const server = app.getHttpServer();
@@ -133,6 +102,8 @@ describe('Gateway', () => {
     const addPlayerSpy = jest
       .spyOn(gamesRepository, 'addPlayer')
       .mockImplementation(async () => ({ ...game, players: [player] }));
+
+    expect(app.get(GamesController)).toBeDefined();
 
     // Call join game without player id
     // Should return gameId and player id

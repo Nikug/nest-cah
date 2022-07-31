@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { DatabaseConnectionModule } from './databaseConnection.module';
 import { GamesRepository } from './repositories/games.repository';
-import { Game, GameSchema } from './schemas/game.schema';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Game.name, schema: GameSchema }]),
-  ],
+  imports: [DatabaseConnectionModule],
   providers: [GamesRepository],
   exports: [GamesRepository],
 })
