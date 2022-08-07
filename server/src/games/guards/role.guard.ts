@@ -7,7 +7,7 @@ import { PlayerRole } from '../interfaces/games.interfaces';
 export class RoleGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private gamesService: GamesRepository,
+    private gamesRepository: GamesRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -19,9 +19,9 @@ export class RoleGuard implements CanActivate {
     const playerId: string = request.params.playerId;
 
     if (role === 'cardCzar') {
-      return await this.gamesService.isCardCzar(gameName, playerId);
+      return await this.gamesRepository.isCardCzar(gameName, playerId);
     } else if (role === 'host') {
-      return await this.gamesService.isHost(gameName, playerId);
+      return await this.gamesRepository.isHost(gameName, playerId);
     }
 
     return true;

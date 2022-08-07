@@ -32,7 +32,7 @@ export class GamesService {
     if (!gameExists) throw new GameNotFoundError(gameName);
 
     const hasHost = await this.gamesRepository.gameHasHost(gameName);
-    const player = this.gamesFactory.createPlayer('', !hasHost);
+    const player = this.gamesFactory.createPlayer(!hasHost);
 
     const game = await this.gamesRepository.addPlayer(gameName, player);
 

@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Operation } from 'fast-json-patch';
 import { Role } from 'src/games/decorators/roles.decorator';
 import { RoleGuard } from 'src/games/guards/role.guard';
+import { SocketMessages } from './consts/sockets.consts';
 import { GamesGateway } from './gateways/games.gateway';
 import { RouteParams } from './interfaces/games.interfaces';
 import { GamesService } from './services/games.service';
@@ -47,7 +48,7 @@ export class GamesController {
     await this.gamesGateway.updateOtherPlayers(
       params.gameName,
       params.playerId,
-      'updateOptions',
+      SocketMessages.options,
       newPatch,
     );
 

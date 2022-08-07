@@ -56,9 +56,9 @@ export class GamesFactory {
     return humanId({ separator: '-', capitalize: false });
   }
 
-  createPlayer(socketId: string, isHost: boolean): Player {
+  createPlayer(isHost: boolean): Player {
     return {
-      socketId,
+      socketId: '',
       id: nanoid(),
       publicId: nanoid(),
       name: '',

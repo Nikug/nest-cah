@@ -2,13 +2,14 @@ import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Test } from '@nestjs/testing';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { GamesFactory } from 'src/games/factories/games.factory';
 import { GamesRepository } from 'src/database/repositories/games.repository';
 import { GamesGateway } from 'src/games/gateways/games.gateway';
 import { SocketMessages } from 'src/games/consts/sockets.consts';
 import { GamesController } from 'src/games/games.controller';
 import { GamesService } from 'src/games/services/games.service';
+import { Operation } from 'fast-json-patch';
 
 const gamesRepository: Partial<GamesRepository> = {
   gameExists: jest.fn().mockImplementation(async () => true),
@@ -44,14 +45,27 @@ describe('Gateway', () => {
   const getClientSocket = (app: INestApplication) => {
     const server = app.getHttpServer();
     if (!server.address()) {
-      server.listen(0);
+      server.listen();
     }
 
     const address = server.address();
     const socketAddress = `http://[${address.address}]:${address.port}`;
-    const socket = io(socketAddress);
+    const socket = io(socketAddress, { multiplex: false, forceNew: true });
 
     return socket;
+  };
+
+  const waitForSockets = async (sockets: Socket[]) => {
+    let connectedCount = 0;
+    let escape = 0;
+    sockets.forEach((socket) => socket.on('connect', () => connectedCount++));
+
+    while (connectedCount < sockets.length) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      escape++;
+      if (escape > 100) return false;
+    }
+    return true;
   };
 
   it('should be defined', () => {
@@ -81,7 +95,7 @@ describe('Gateway', () => {
     // Game is created
     const factory = app.get(GamesFactory);
     const game = factory.createGame();
-    const player = factory.createPlayer('socket', true);
+    const player = factory.createPlayer(true);
 
     const addPlayerSpy = jest
       .spyOn(gamesRepository, 'addPlayer')
@@ -123,6 +137,56 @@ describe('Gateway', () => {
 
     socket.on('disconnect', () => {
       done();
+    });
+  });
+
+  it('should update game options through sockets', (done) => {
+    const repository = app.get(GamesRepository);
+    const gateway = app.get(GamesGateway);
+    const service = app.get(GamesService);
+
+    const factory = app.get(GamesFactory);
+    const playerSocket = getClientSocket(app);
+    const hostSocket = getClientSocket(app);
+
+    waitForSockets([playerSocket, hostSocket]).then(() => {
+      const socketSpy = jest
+        .spyOn(service, 'getPlayerSocket')
+        .mockImplementation(async () => hostSocket.id);
+
+      const game = factory.createGame();
+      const player = factory.createPlayer(true);
+      player.socketId = playerSocket.id;
+      game.players = [player];
+      gateway.server.sockets.socketsJoin(game.name);
+
+      repository.isHost = jest.fn().mockImplementation(() => true);
+      const updateSpy = jest
+        .spyOn(service, 'updateGameOptions')
+        .mockImplementation(
+          async (gameName: string, patch: Operation[]) => patch,
+        );
+
+      const operation = { op: 'set', path: '/maximumPlayers', value: '12' };
+
+      playerSocket.on('disconnect', () => {
+        hostSocket.disconnect();
+      });
+      hostSocket.on('disconnect', () => done());
+
+      playerSocket.on(SocketMessages.options, (data: Operation[]) => {
+        expect(updateSpy).toBeCalledTimes(1);
+        expect(data.length).toBe(1);
+        expect(data[0]).toMatchObject(operation);
+        playerSocket.disconnect();
+      });
+
+      request(app.getHttpServer())
+        .post(`/games/options/${game.name}/hostId`)
+        .send([operation])
+        .expect(201)
+        .expect([operation])
+        .then();
     });
   });
 });
