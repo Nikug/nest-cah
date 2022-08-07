@@ -50,22 +50,36 @@ describe('Gateway', () => {
 
     const address = server.address();
     const socketAddress = `http://[${address.address}]:${address.port}`;
-    const socket = io(socketAddress, { multiplex: false, forceNew: true });
+    const socket = io(socketAddress, { multiplex: false });
 
     return socket;
   };
 
-  const waitForSockets = async (sockets: Socket[]) => {
-    let connectedCount = 0;
+  const waitSockets = async (
+    sockets: Socket[] | Socket,
+    event: string,
+    callback?: (data: any) => void,
+  ) => {
+    const socketsArray = Array.isArray(sockets) ? sockets : [sockets];
+    let socketEventCount = 0;
     let escape = 0;
-    sockets.forEach((socket) => socket.on('connect', () => connectedCount++));
 
-    while (connectedCount < sockets.length) {
+    socketsArray.map((socket) =>
+      socket.on(event, async (data: any) => {
+        socketEventCount++;
+        await callback?.(data);
+      }),
+    );
+
+    while (socketEventCount < socketsArray.length) {
       await new Promise((resolve) => setTimeout(resolve, 10));
       escape++;
-      if (escape > 100) return false;
+      if (escape > 100)
+        throw new Error(
+          `Timeout, waited for ${socketsArray.length} "${event}" events, received ${socketEventCount}`,
+        );
     }
-    return true;
+    return;
   };
 
   it('should be defined', () => {
@@ -73,22 +87,16 @@ describe('Gateway', () => {
     expect(gateway).toBeDefined();
   });
 
-  it('should allow connecting, pinging and disconnecting', (done) => {
+  it('should allow connecting, pinging and disconnecting', async () => {
     const message = 'ping!';
     const socket = getClientSocket(app);
 
-    socket.on('connect', () => {
-      socket.emit('ping', message);
-    });
-
-    socket.on(SocketMessages.ping, (data) => {
+    await waitSockets(socket, 'connect');
+    socket.emit(SocketMessages.ping, message);
+    await waitSockets(socket, SocketMessages.ping, (data) => {
       expect(data).toBe(message);
-      socket.disconnect();
     });
-
-    socket.on('disconnect', () => {
-      done();
-    });
+    socket.disconnect();
   });
 
   it('should allow joining a game', async () => {
@@ -114,79 +122,73 @@ describe('Gateway', () => {
     expect(addPlayerSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should allow subscribing to a game', (done) => {
+  it('should allow subscribing to a game', async () => {
     const repository = app.get(GamesRepository);
 
     const socket = getClientSocket(app);
-    socket.on('connect', () => {
-      socket.emit(SocketMessages.subscribe, {
-        gameName: 'game',
-        playerId: 'id',
-      });
+    await waitSockets(socket, 'connect');
+
+    socket.emit(SocketMessages.subscribe, {
+      gameName: 'game',
+      playerId: 'id',
     });
 
-    socket.on(SocketMessages.subscribe, (response) => {
-      expect(response).toBe('ok');
+    await waitSockets(socket, SocketMessages.subscribe, (data) => {
+      expect(data).toBe('ok');
       expect(repository.setPlayerSocket).toHaveBeenCalledWith(
         'game',
         'id',
         socket.id,
       );
-      socket.disconnect();
     });
-
-    socket.on('disconnect', () => {
-      done();
-    });
+    socket.disconnect();
   });
 
-  it('should update game options through sockets', (done) => {
+  it('should update game options through sockets', async () => {
+    // Arrange
     const repository = app.get(GamesRepository);
     const gateway = app.get(GamesGateway);
     const service = app.get(GamesService);
-
     const factory = app.get(GamesFactory);
+
     const playerSocket = getClientSocket(app);
     const hostSocket = getClientSocket(app);
+    await waitSockets([playerSocket, hostSocket], 'connect');
 
-    waitForSockets([playerSocket, hostSocket]).then(() => {
-      const socketSpy = jest
-        .spyOn(service, 'getPlayerSocket')
-        .mockImplementation(async () => hostSocket.id);
+    jest
+      .spyOn(service, 'getPlayerSocket')
+      .mockImplementation(async () => hostSocket.id);
 
-      const game = factory.createGame();
-      const player = factory.createPlayer(true);
-      player.socketId = playerSocket.id;
-      game.players = [player];
-      gateway.server.sockets.socketsJoin(game.name);
+    const game = factory.createGame();
+    const player = factory.createPlayer(true);
+    player.socketId = playerSocket.id;
+    game.players = [player];
+    gateway.server.sockets.socketsJoin(game.name);
 
-      repository.isHost = jest.fn().mockImplementation(() => true);
-      const updateSpy = jest
-        .spyOn(service, 'updateGameOptions')
-        .mockImplementation(
-          async (gameName: string, patch: Operation[]) => patch,
-        );
+    repository.isHost = jest.fn().mockImplementation(() => true);
+    const updateSpy = jest
+      .spyOn(service, 'updateGameOptions')
+      .mockImplementation(
+        async (gameName: string, patch: Operation[]) => patch,
+      );
 
-      const operation = { op: 'set', path: '/maximumPlayers', value: '12' };
+    const operation = { op: 'set', path: '/maximumPlayers', value: '12' };
 
-      playerSocket.on('disconnect', () => {
-        hostSocket.disconnect();
-      });
-      hostSocket.on('disconnect', () => done());
+    // Act, Assert
+    await request(app.getHttpServer())
+      .post(`/games/options/${game.name}/hostId`)
+      .send([operation])
+      .expect(201)
+      .expect([operation]);
 
-      playerSocket.on(SocketMessages.options, (data: Operation[]) => {
-        expect(updateSpy).toBeCalledTimes(1);
-        expect(data.length).toBe(1);
-        expect(data[0]).toMatchObject(operation);
-        playerSocket.disconnect();
-      });
-
-      request(app.getHttpServer())
-        .post(`/games/options/${game.name}/hostId`)
-        .send([operation])
-        .expect(201)
-        .expect([operation])
-        .then();
+    await waitSockets(playerSocket, SocketMessages.options, (data) => {
+      expect(updateSpy).toBeCalledTimes(1);
+      expect(data.length).toBe(1);
+      expect(data[0]).toMatchObject(operation);
     });
+
+    // Cleanup
+    playerSocket.disconnect();
+    hostSocket.disconnect();
   });
 });
