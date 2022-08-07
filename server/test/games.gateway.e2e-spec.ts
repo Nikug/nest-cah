@@ -2,7 +2,6 @@ import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Test } from '@nestjs/testing';
-import { io, Socket } from 'socket.io-client';
 import { GamesFactory } from 'src/games/factories/games.factory';
 import { GamesRepository } from 'src/database/repositories/games.repository';
 import { GamesGateway } from 'src/games/gateways/games.gateway';
@@ -10,6 +9,7 @@ import { SocketMessages } from 'src/games/consts/sockets.consts';
 import { GamesController } from 'src/games/games.controller';
 import { GamesService } from 'src/games/services/games.service';
 import { Operation } from 'fast-json-patch';
+import { getClientSocket, waitSockets } from './helpers';
 
 const gamesRepository: Partial<GamesRepository> = {
   gameExists: jest.fn().mockImplementation(async () => true),
@@ -19,6 +19,7 @@ const gamesRepository: Partial<GamesRepository> = {
 };
 
 describe('Gateway', () => {
+  // Setup
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -42,46 +43,7 @@ describe('Gateway', () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  const getClientSocket = (app: INestApplication) => {
-    const server = app.getHttpServer();
-    if (!server.address()) {
-      server.listen();
-    }
-
-    const address = server.address();
-    const socketAddress = `http://[${address.address}]:${address.port}`;
-    const socket = io(socketAddress, { multiplex: false });
-
-    return socket;
-  };
-
-  const waitSockets = async (
-    sockets: Socket[] | Socket,
-    event: string,
-    callback?: (data: any) => void,
-  ) => {
-    const socketsArray = Array.isArray(sockets) ? sockets : [sockets];
-    let socketEventCount = 0;
-    let escape = 0;
-
-    socketsArray.map((socket) =>
-      socket.on(event, async (data: any) => {
-        socketEventCount++;
-        await callback?.(data);
-      }),
-    );
-
-    while (socketEventCount < socketsArray.length) {
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      escape++;
-      if (escape > 100)
-        throw new Error(
-          `Timeout, waited for ${socketsArray.length} "${event}" events, received ${socketEventCount}`,
-        );
-    }
-    return;
-  };
-
+  // Tests
   it('should be defined', () => {
     const gateway = app.get(GamesGateway);
     expect(gateway).toBeDefined();
