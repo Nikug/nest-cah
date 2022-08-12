@@ -20,7 +20,7 @@ export const mapGame = (game: Game): GameDto => {
     state: game.state,
     options: game.options,
     streak: mapStreak(game.streak, playerIds),
-    rounds: game.rounds.map((round) => mapRounds(round, playerIds)),
+    rounds: game.rounds.map((round) => mapRound(round, playerIds)),
   };
 };
 
@@ -85,7 +85,7 @@ export const mapPlayerIds = (players: Player[]): PlayerIdMap => {
   }, {} as PlayerIdMap);
 };
 
-export const mapRounds = (round: Round, playerIds: PlayerIdMap): RoundDto => {
+export const mapRound = (round: Round, playerIds: PlayerIdMap): RoundDto => {
   const winner = round.playedCards.find((playedCards) => playedCards.winner);
   return {
     round: round.round,

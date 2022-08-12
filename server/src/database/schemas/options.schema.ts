@@ -17,10 +17,10 @@ export class Options {
   allowKickedPlayerJoin: boolean;
 
   @Prop()
-  allowCardCzarPopularVote: boolean;
+  allowPopularVote: boolean;
 
   @Prop()
-  allowPopularVote: boolean;
+  allowCardCzarPopularVote: boolean;
 
   @Prop()
   password?: string;
