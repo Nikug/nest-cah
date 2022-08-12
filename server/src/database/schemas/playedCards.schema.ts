@@ -7,7 +7,7 @@ export type PlayedCardsDocument = Document & PlayedCards;
 @Schema()
 export class PlayedCards {
   @Prop({ required: true })
-  playerId: number;
+  playerId: string;
 
   @Prop({ required: true })
   popularVotes: string[];

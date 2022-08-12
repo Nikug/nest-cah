@@ -23,3 +23,5 @@ export type GameState =
   | 'gameEnd';
 
 export type PlayerRole = 'cardCzar' | 'host';
+
+export type PlayerIdMap = Record<string, string>;
