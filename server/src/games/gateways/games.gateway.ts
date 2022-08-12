@@ -48,9 +48,11 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: Socket) {
-    // Todo: Set player disconnected
-    // Check if game should be deleted
-    // console.log(`Client disconnected: ${client.id}`);
+    // Client should only have one room
+    const gameNames = this.server.sockets.adapter.rooms.get(client.id);
+    gameNames?.forEach((name) => {
+      this.gamesService.setPlayerDisconnected(name, client.id);
+    });
   }
 
   @SubscribeMessage(SocketMessages.ping)
@@ -61,7 +63,18 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage(SocketMessages.subscribe)
   async subscribeToGame(client: Socket, data: SubscribeGameMessage) {
+    const existingSocketId = await this.gamesService.getPlayerSocket(
+      data.gameName,
+      data.playerId,
+    );
+
+    if (existingSocketId) {
+      const existingSocket = this.server.sockets.sockets.get(existingSocketId);
+      existingSocket?.disconnect();
+    }
+
     client.join(data.gameName);
+
     await this.gamesService.setPlayerSocket(
       data.gameName,
       data.playerId,

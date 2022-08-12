@@ -77,4 +77,15 @@ export class GamesService {
 
     return actualPatch;
   }
+
+  async setPlayerDisconnected(
+    gameName: string,
+    socketId: string,
+  ): Promise<void> {
+    await this.gamesRepository.setPlayerState(
+      gameName,
+      socketId,
+      'disconnected',
+    );
+  }
 }

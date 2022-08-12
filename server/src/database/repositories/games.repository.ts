@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Game, GameDocument } from 'src/database/schemas/game.schema';
+import { PlayerState } from 'src/games/interfaces/games.interfaces';
 import { Player } from '../schemas/player.schema';
 
 @Injectable()
@@ -106,6 +107,17 @@ export class GamesRepository {
       .where('players._id')
       .equals(playerId)
       .set('socketId', socketId);
+    return result.modifiedCount;
+  }
+
+  async setPlayerState(gameName: string, playerId: string, state: PlayerState) {
+    const result = await this.gameModel
+      .updateOne()
+      .where('name')
+      .equals(gameName)
+      .where('players._id')
+      .equals(playerId)
+      .set('players.state', state);
     return result.modifiedCount;
   }
 }
