@@ -20,6 +20,15 @@ export class GamesRepository {
     return game;
   }
 
+  async getGameWithCards(gameName: string): Promise<GameDocument | null> {
+    const game = await this.gameModel
+      .findOne()
+      .where('name')
+      .equals(gameName)
+      .populate('cards');
+    return game;
+  }
+
   async getPlayer(
     gameName: string,
     playerId: string,

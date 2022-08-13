@@ -54,4 +54,10 @@ export class GamesController {
 
     return newPatch;
   }
+
+  @Post('options/:gameName/:playerId')
+  @Role('host')
+  async startGame(@Param() params: RouteParams): Promise<void> {
+    await this.gamesService.startGame(params.gameName);
+  }
 }

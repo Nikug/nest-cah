@@ -1,3 +1,5 @@
+import { PlayerState } from '../interfaces/games.interfaces';
+
 export const GameOptionsConfig = {
   maximumPlayers: {
     min: 2,
@@ -18,6 +20,16 @@ export const GameOptionsConfig = {
   },
   password: {
     default: undefined,
+  },
+  numberOfWhiteCards: {
+    min: 3,
+    default: 10,
+    max: 25,
+  },
+  numberOfBlackCards: {
+    min: 1,
+    default: 3,
+    max: 25,
   },
   scoreLimit: {
     min: 1,
@@ -79,3 +91,17 @@ export const GameOptionsConfig = {
     },
   },
 };
+
+export const ActivePlayerStates: PlayerState[] = [
+  'ready',
+  'playing',
+  'finished',
+  'joining',
+];
+
+export const InactivePlayerStates: PlayerState[] = [
+  'pickingName',
+  'disconnected',
+  'leaving',
+  'left',
+];

@@ -25,6 +25,12 @@ export class Options {
   @Prop()
   password?: string;
 
+  @Prop()
+  numberOfWhiteCards: number;
+
+  @Prop()
+  numberOfBlackCards: number;
+
   @Prop({ required: true, type: WinConditionsSchema })
   winConditions: WinConditions;
 

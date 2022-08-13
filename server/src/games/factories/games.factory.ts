@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { Game } from 'src/database/schemas/game.schema';
 import { GameOptionsConfig as conf } from '../consts/games.consts';
 import { Player } from '../../database/schemas/player.schema';
+import { Round } from 'src/database/schemas/round.schema';
 
 @Injectable()
 export class GamesFactory {
@@ -29,6 +30,8 @@ export class GamesFactory {
         allowCardCzarPopularVote: conf.allowCardCzarPopularVote.default,
         allowPopularVote: conf.allowPopularVote.default,
         password: conf.password.default,
+        numberOfWhiteCards: conf.numberOfWhiteCards.default,
+        numberOfBlackCards: conf.numberOfBlackCards.default,
         winConditions: {
           scoreLimit: conf.scoreLimit.default,
           useScoreLimit: conf.useScoreLimit.default,
@@ -74,6 +77,16 @@ export class GamesFactory {
       isCardCzar: false,
       isHost,
       isPopularVoteKing: false,
+    };
+  }
+
+  createRound(round: number, cardCzarId: string): Round {
+    return {
+      round,
+      cardIndex: 0,
+      blackCard: undefined,
+      cardCzarId,
+      playedCards: [],
     };
   }
 }

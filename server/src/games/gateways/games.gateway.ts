@@ -80,6 +80,7 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.playerId,
       client.id,
     );
+    // Todo: Should return all game related objects
     client.emit(SocketMessages.subscribe, 'ok');
   }
 }

@@ -14,6 +14,8 @@ export interface OptionsDto {
   allowKickedPlayerJoin: boolean;
   allowCardCzarPopularVote: boolean;
   allowPopularVote: boolean;
+  numberOfWhiteCards: number;
+  numberOfBlackCards: number;
   password?: string;
   winConditions: WinConditionsDto;
   timers: TimersDto;
@@ -55,7 +57,7 @@ export interface StreakDto {
 export interface RoundDto {
   round: number;
   cardIndex: number;
-  blackCard: BlackCard;
+  blackCard?: BlackCard;
   cardCzarId: string;
   winnerId: string | null;
   playedCards: PlayedCardsDto[];

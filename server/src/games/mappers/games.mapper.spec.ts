@@ -288,6 +288,8 @@ describe('Games mapper', () => {
       allowCardCzarPopularVote: true,
       allowPopularVote: true,
       password: 'password',
+      numberOfWhiteCards: 10,
+      numberOfBlackCards: 10,
       winConditions: {
         scoreLimit: 5,
         useRoundLimit: false,

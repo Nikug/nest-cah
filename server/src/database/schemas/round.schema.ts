@@ -14,7 +14,7 @@ export class Round {
   cardIndex: number;
 
   @Prop({ type: BlackCardSchema })
-  blackCard: BlackCard;
+  blackCard?: BlackCard;
 
   @Prop({ required: true })
   cardCzarId: string;

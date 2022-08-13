@@ -8,12 +8,16 @@ import {
 import { GamesFactory } from '../factories/games.factory';
 import { GameNameAndPlayerId } from '../interfaces/gameDtos.interfaces';
 import { Game } from '../../database/schemas/game.schema';
+import { GameStatesService } from './gameStates.service';
+import { CardsService } from './cards.service';
 
 @Injectable()
 export class GamesService {
   constructor(
+    private gameStatesService: GameStatesService,
     private gamesRepository: GamesRepository,
     private gamesFactory: GamesFactory,
+    private cardsService: CardsService,
   ) {}
 
   async createGame(): Promise<Game> {
@@ -87,5 +91,17 @@ export class GamesService {
       socketId,
       'disconnected',
     );
+  }
+
+  async startGame(gameName: string): Promise<Operation[]> {
+    let game = await this.gamesRepository.getGameWithCards(gameName);
+    if (!game) throw new GameNotFoundError(gameName);
+
+    game = await this.gameStatesService.startGame(game);
+    game = await this.gameStatesService.startRound(game);
+    game = this.cardsService.dealBlackCards(game);
+    await game.save();
+
+    return [];
   }
 }

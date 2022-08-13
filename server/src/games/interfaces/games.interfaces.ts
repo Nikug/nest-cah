@@ -11,7 +11,8 @@ export type PlayerState =
   | 'pickingName'
   | 'disconnected'
   | 'spectating'
-  | 'leaving';
+  | 'leaving'
+  | 'left';
 
 export type GameState =
   | 'lobby'
