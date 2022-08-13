@@ -10,6 +10,7 @@ import { GameNameAndPlayerId } from '../interfaces/gameDtos.interfaces';
 import { Game } from '../../database/schemas/game.schema';
 import { GameStatesService } from './gameStates.service';
 import { CardsService } from './cards.service';
+import { mapPatchGameUpdate } from '../mappers/games.mapper';
 
 @Injectable()
 export class GamesService {
@@ -93,14 +94,23 @@ export class GamesService {
     );
   }
 
-  async startGame(gameName: string): Promise<Operation[]> {
+  async startGame(gameName: string, playerId: string): Promise<Operation[]> {
     let game = await this.gamesRepository.getGameWithCards(gameName);
     if (!game) throw new GameNotFoundError(gameName);
+
+    const gameBeforePatch = game.toObject<Game>();
 
     game = await this.gameStatesService.startGame(game);
     game = await this.gameStatesService.startRound(game);
     game = this.cardsService.dealBlackCards(game);
     await game.save();
+
+    const gameAfterPatch = game.toObject<Game>();
+    const updateMessage = mapPatchGameUpdate(
+      gameBeforePatch,
+      gameAfterPatch,
+      playerId,
+    );
 
     return [];
   }

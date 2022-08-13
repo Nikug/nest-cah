@@ -58,6 +58,6 @@ export class GamesController {
   @Post('options/:gameName/:playerId')
   @Role('host')
   async startGame(@Param() params: RouteParams): Promise<void> {
-    await this.gamesService.startGame(params.gameName);
+    await this.gamesService.startGame(params.gameName, params.playerId);
   }
 }
