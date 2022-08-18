@@ -19,8 +19,11 @@ export interface FullGameMessage {
 }
 
 export interface GameUpdateMessage {
+  socketId: string;
   game: Operation[];
   players: Operation[];
   player: Operation[];
   blackCards?: BlackCard[];
 }
+
+export type GameUpdateMessageMap = Record<string, GameUpdateMessage>;

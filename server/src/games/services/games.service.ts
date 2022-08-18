@@ -10,7 +10,14 @@ import { GameNameAndPlayerId } from '../interfaces/gameDtos.interfaces';
 import { Game } from '../../database/schemas/game.schema';
 import { GameStatesService } from './gameStates.service';
 import { CardsService } from './cards.service';
-import { mapPatchGameUpdate } from '../mappers/games.mapper';
+import {
+  mapFullGameForSinglePlayer,
+  mapPatchGameUpdate,
+} from '../mappers/games.mapper';
+import {
+  FullGameMessage,
+  GameUpdateMessageMap,
+} from '../interfaces/socketMessages.interface';
 
 @Injectable()
 export class GamesService {
@@ -94,7 +101,7 @@ export class GamesService {
     );
   }
 
-  async startGame(gameName: string, playerId: string): Promise<Operation[]> {
+  async startGame(gameName: string): Promise<GameUpdateMessageMap> {
     let game = await this.gamesRepository.getGameWithCards(gameName);
     if (!game) throw new GameNotFoundError(gameName);
 
@@ -106,12 +113,18 @@ export class GamesService {
     await game.save();
 
     const gameAfterPatch = game.toObject<Game>();
-    const updateMessage = mapPatchGameUpdate(
-      gameBeforePatch,
-      gameAfterPatch,
-      playerId,
-    );
+    const updates = mapPatchGameUpdate(gameBeforePatch, gameAfterPatch);
 
-    return [];
+    return updates;
+  }
+
+  async getGameForPlayer(
+    gameName: string,
+    playerId: string,
+  ): Promise<FullGameMessage> {
+    const game = await this.gamesRepository.getGame(gameName);
+    if (!game) throw new GameNotFoundError(gameName);
+
+    return mapFullGameForSinglePlayer(game, playerId);
   }
 }

@@ -5,6 +5,7 @@ import { Player } from 'src/database/schemas/player.schema';
 import { Round } from 'src/database/schemas/round.schema';
 import { Streak } from 'src/database/schemas/streak.schema';
 import { PlayerNotFoundError } from '../consts/errors.consts';
+import { playerIsConnected } from '../helpers/playerState.helper';
 import {
   ConfidentialPlayerDto,
   GameDto,
@@ -17,45 +18,66 @@ import { PlayerIdMap } from '../interfaces/games.interfaces';
 import {
   FullGameMessage,
   GameUpdateMessage,
+  GameUpdateMessageMap,
 } from '../interfaces/socketMessages.interface';
 
-// TODO: Map message for every player individually
-export const mapFullGameUpdate = (
+export const mapFullGameUpdate = (game: Game): FullGameMessage[] => {
+  const mappedGame = mapGame(game);
+  const mappedPlayers = mapPlayers(game.players);
+
+  const fullUpdates = game.players.filter(playerIsConnected).map((player) => ({
+    game: mappedGame,
+    players: mappedPlayers,
+    player: mapConfidentialPlayer(player),
+  }));
+
+  return fullUpdates;
+};
+
+export const mapFullGameForSinglePlayer = (
   game: Game,
   playerId: string,
 ): FullGameMessage => {
-  const player = game.players.find((p) => p.id === playerId);
+  const player = game.players.find((player) => player.id === playerId);
   if (!player) throw new PlayerNotFoundError(playerId);
 
-  const mappedGame = mapGame(game);
-  const mappedPlayers = mapPlayers(game.players);
-  const mappedPlayer = mapConfidentialPlayer(player);
-
   return {
-    game: mappedGame,
-    players: mappedPlayers,
-    player: mappedPlayer,
+    game: mapGame(game),
+    players: mapPlayers(game.players),
+    player: mapConfidentialPlayer(player),
   };
 };
 
-// TODO: Map message for every player individually
 export const mapPatchGameUpdate = (
   originalGame: Game,
   updatedGame: Game,
-  playerId: string,
-): GameUpdateMessage => {
-  const original = mapFullGameUpdate(originalGame, playerId);
-  const updated = mapFullGameUpdate(updatedGame, playerId);
+): GameUpdateMessageMap => {
+  const original = mapFullGameUpdate(originalGame);
+  const updated = mapFullGameUpdate(updatedGame);
 
-  const gamePatch = compare(original.game, updated.game);
-  const playersPatch = compare(original.players, updated.players);
-  const playerPatch = compare(original.player, updated.player);
+  if (original.length !== updated.length) {
+    throw new Error('Original and updated game arrays must be the same length');
+  }
 
-  return {
-    game: gamePatch,
-    players: playersPatch,
-    player: playerPatch,
-  };
+  if (original.length === 0) {
+    return {};
+  }
+
+  const gameUpdate = compare(original[0].game, updated[0].game);
+  const playersUpdate = compare(original[0].players, updated[0].players);
+
+  const individualPatches: Record<string, GameUpdateMessage> = {};
+  for (let i = 0, limit = original.length; i < limit; i++) {
+    const playerId = original[i].player.id;
+    individualPatches[playerId] = {
+      socketId: updated[i].player.socketId,
+      game: gameUpdate,
+      players: playersUpdate,
+      player: compare(original[i].player, updated[i].player),
+    };
+  }
+
+  return individualPatches;
 };
 
 export const mapGame = (game: Game): GameDto => {

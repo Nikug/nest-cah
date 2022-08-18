@@ -1,12 +1,15 @@
 import {
-  OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { SubscribeGameMessage } from '../interfaces/socketMessages.interface';
+import {
+  GameUpdateMessage,
+  GameUpdateMessageMap,
+  SubscribeGameMessage,
+} from '../interfaces/socketMessages.interface';
 import { GamesService } from '../services/games.service';
 import { Server } from 'socket.io';
 import { PlayerNotFoundError } from '../consts/errors.consts';
@@ -17,7 +20,7 @@ import { SocketMessages } from '../consts/sockets.consts';
     origin: '*',
   },
 })
-export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class GamesGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -43,8 +46,18 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket?.to(gameName).emit(event, data);
   }
 
-  handleConnection(client: Socket) {
-    // console.log(`Client connected: ${client.id}`);
+  async updatePlayers(updates: GameUpdateMessageMap, senderId: string) {
+    let restMessage: GameUpdateMessage | undefined = undefined;
+    Object.entries(updates).map(([playerId, message]) => {
+      if (playerId === senderId) {
+        restMessage = message;
+      } else {
+        const socket = this.server.sockets.sockets.get(message.socketId);
+        socket?.emit(SocketMessages.fullUpdate, message);
+      }
+    });
+
+    return restMessage;
   }
 
   handleDisconnect(client: Socket) {
@@ -80,7 +93,11 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.playerId,
       client.id,
     );
-    // Todo: Should return all game related objects
-    client.emit(SocketMessages.subscribe, 'ok');
+
+    const update = await this.gamesService.getGameForPlayer(
+      data.gameName,
+      data.playerId,
+    );
+    client.emit(SocketMessages.subscribe, update);
   }
 }

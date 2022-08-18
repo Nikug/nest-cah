@@ -44,3 +44,7 @@ export const playerIsInactive = (player: Player): boolean => {
 export const playerIsJoining = (player: Player): boolean => {
   return player.state === 'joining';
 };
+
+export const playerIsConnected = (player: Player): boolean => {
+  return player.state !== 'disconnected' && player.state !== 'left';
+};

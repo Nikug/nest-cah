@@ -9,9 +9,9 @@ export type PlayerState =
   | 'finished'
   | 'joining'
   | 'pickingName'
-  | 'disconnected'
   | 'spectating'
   | 'leaving'
+  | 'disconnected'
   | 'left';
 
 export type GameState =
