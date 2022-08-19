@@ -9,7 +9,7 @@ const arraysHaveSameItems = (arr1: any[], arr2: any[]): void => {
   arr1.map((item) => expect(arr2).toContain(item));
 };
 
-const aContainsB = (arr1: any[], arr2: any[]): void => {
+const firstArrayContainsSecondArray = (arr1: any[], arr2: any[]): void => {
   arr2.map((item) => expect(arr1).toContain(item));
 };
 
@@ -97,7 +97,7 @@ describe('Cards service', () => {
     expect(game.cards.whiteCardDeck.length).toBe(5);
     expect(game.cards.whiteCardDiscard.length).toBe(0);
     arraysHaveDifferentItems(game.cards.whiteCardDeck, drawnCards);
-    aContainsB(drawnCards, whiteCards);
+    firstArrayContainsSecondArray(drawnCards, whiteCards);
   });
 
   it('draws black cards', () => {
@@ -125,7 +125,7 @@ describe('Cards service', () => {
     expect(game.cards.blackCardDeck.length).toBe(5);
     expect(game.cards.blackCardDiscard.length).toBe(0);
     arraysHaveDifferentItems(game.cards.blackCardDeck, drawnCards);
-    aContainsB(drawnCards, blackCards);
+    firstArrayContainsSecondArray(drawnCards, blackCards);
   });
 
   it('deals white cards', () => {
