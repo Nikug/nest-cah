@@ -10,12 +10,15 @@ import { GamesController } from 'src/games/games.controller';
 import { GamesService } from 'src/games/services/games.service';
 import { Operation } from 'fast-json-patch';
 import { getClientSocket, waitSockets } from './helpers';
+import { GameStatesService } from 'src/games/services/gameStates.service';
+import { CardsService } from 'src/games/services/cards.service';
 
 const gamesRepository: Partial<GamesRepository> = {
   gameExists: jest.fn().mockImplementation(async () => true),
   gameHasHost: jest.fn().mockImplementation(async () => false),
   addPlayer: jest.fn().mockImplementation(async () => undefined),
   setPlayerSocket: jest.fn().mockImplementation(async () => 0),
+  getPlayer: jest.fn().mockImplementation(async () => undefined),
 };
 
 describe('Gateway', () => {
@@ -25,7 +28,14 @@ describe('Gateway', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       controllers: [GamesController],
-      providers: [GamesRepository, GamesGateway, GamesService, GamesFactory],
+      providers: [
+        GamesRepository,
+        GamesGateway,
+        GamesService,
+        GamesFactory,
+        GameStatesService,
+        CardsService,
+      ],
     })
       .overrideProvider(GamesRepository)
       .useValue(gamesRepository)
@@ -86,6 +96,15 @@ describe('Gateway', () => {
 
   it('should allow subscribing to a game', async () => {
     const repository = app.get(GamesRepository);
+    const factory = app.get(GamesFactory);
+    const player = factory.createPlayer(true);
+    player.id = 'id';
+    const game = factory.createGame();
+    game.name = 'game';
+    game.players = [player];
+
+    repository.getPlayer = jest.fn().mockImplementation(() => player);
+    repository.getGame = jest.fn().mockImplementation(() => game);
 
     const socket = getClientSocket(app);
     await waitSockets(socket, 'connect');
@@ -96,7 +115,39 @@ describe('Gateway', () => {
     });
 
     await waitSockets(socket, SocketMessages.subscribe, (data) => {
-      expect(data).toBe('ok');
+      expect(data).toEqual({
+        game: {
+          name: 'game',
+          options: game.options,
+          rounds: [],
+          state: 'lobby',
+        },
+        player: {
+          id: player.publicId,
+          privateId: player.id,
+          socketId: player.socketId,
+          name: player.name,
+          state: player.state,
+          score: player.score,
+          avatar: player.avatar,
+          isCardCzar: player.isCardCzar,
+          isHost: player.isHost,
+          isPopularVoteKing: player.isPopularVoteKing,
+          whiteCards: player.whiteCards,
+        },
+        players: [
+          {
+            avatar: player.avatar,
+            id: player.publicId,
+            isCardCzar: false,
+            isHost: true,
+            isPopularVoteKing: false,
+            name: '',
+            score: 0,
+            state: 'pickingName',
+          },
+        ],
+      });
       expect(repository.setPlayerSocket).toHaveBeenCalledWith(
         'game',
         'id',
