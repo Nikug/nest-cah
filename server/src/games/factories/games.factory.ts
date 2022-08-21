@@ -33,10 +33,10 @@ export class GamesFactory {
         numberOfWhiteCards: conf.numberOfWhiteCards.default,
         numberOfBlackCards: conf.numberOfBlackCards.default,
         winConditions: {
-          scoreLimit: conf.scoreLimit.default,
-          useScoreLimit: conf.useScoreLimit.default,
-          roundLimit: conf.roundLimit.default,
-          useRoundLimit: conf.useRoundLimit.default,
+          scoreLimit: conf.winConditions.scoreLimit.default,
+          useScoreLimit: conf.winConditions.useScoreLimit.default,
+          roundLimit: conf.winConditions.roundLimit.default,
+          useRoundLimit: conf.winConditions.useRoundLimit.default,
         },
         timers: {
           blackCardSelect: conf.timers.blackCardSelect.default,

@@ -31,21 +31,23 @@ export const GameOptionsConfig = {
     default: 3,
     max: 25,
   },
-  scoreLimit: {
-    min: 1,
-    default: 5,
-    max: 500,
-  },
-  useScoreLimit: {
-    default: true,
-  },
-  roundLimit: {
-    min: 1,
-    default: 10,
-    max: 500,
-  },
-  useRoundLimit: {
-    default: false,
+  winConditions: {
+    scoreLimit: {
+      min: 1,
+      default: 5,
+      max: 500,
+    },
+    useScoreLimit: {
+      default: true,
+    },
+    roundLimit: {
+      min: 1,
+      default: 10,
+      max: 500,
+    },
+    useRoundLimit: {
+      default: false,
+    },
   },
   // Times are in seconds
   timers: {

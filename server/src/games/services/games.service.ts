@@ -18,6 +18,7 @@ import {
   FullGameMessage,
   GameUpdateMessageMap,
 } from '../interfaces/socketMessages.interface';
+import { limitOptions } from '../helpers/options.helper';
 
 @Injectable()
 export class GamesService {
@@ -79,6 +80,7 @@ export class GamesService {
 
     const gameBeforePatch = game.toObject<Game>();
     game.options = applyPatch(game.options, patch).newDocument;
+    game.options = limitOptions(game.options, []);
     await game.save();
 
     const gameAfterPatch = game.toObject<Game>();
